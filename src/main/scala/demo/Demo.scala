@@ -4,7 +4,7 @@ import actors.MagicWorker
 import actors.MagicWorker.{MagicString, Undo}
 import actors.routers.randomrouting.RandomRouting
 import actors.routers.roundrobin.{RoundRobin, RoundRobinWorker}
-import actors.supervisor.Supervisor
+import actors.supervisor.{SelfStopSupervisor, Supervisor}
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.routing.{RoundRobinPool, SmallestMailboxPool}
 
@@ -15,7 +15,12 @@ import akka.routing.{RoundRobinPool, SmallestMailboxPool}
  * http://doc.akka.io/docs/akka/snapshot/scala/actors.html Recommended Practices *
  */
 object Demo {
+
   def main(args: Array[String]) {
+
+    /**
+     * Create an actor system called Routers*
+     */
     val system: ActorSystem = ActorSystem("Routers")
 
     /**
@@ -46,7 +51,7 @@ object Demo {
      * two routees. *
      */
     val randomRouting: ActorRef = system.actorOf(Props[RandomRouting], "RandomRouting")
-    
+
     randomRouting ! "101"
     randomRouting ! "102"
     randomRouting ! "103"
@@ -70,10 +75,38 @@ object Demo {
     smallestMailbox ! "14"
 
     /**
-     * Creates a supervisor actor *
+     * Creates a supervisor actor with SelfStopWorker*
+     */
+    val selfStopSupervisor: ActorRef = system.actorOf(Props[SelfStopSupervisor], "SelfStopSupervisor")
+
+    selfStopSupervisor ! "How are you?"
+
+    selfStopSupervisor ! 1
+    selfStopSupervisor ! "get"
+
+    selfStopSupervisor ! new ArithmeticException
+    selfStopSupervisor ! "get"
+
+    selfStopSupervisor ! 100
+    selfStopSupervisor ! "get"
+
+    /**
+     * Creates a supervisor actor with Worker*
      */
     val supervisor: ActorRef = system.actorOf(Props[Supervisor], "Supervisor")
 
+    supervisor ! "How are you?"
+
+    supervisor ! 1
+    supervisor ! "get"
+
+    supervisor ! new ArithmeticException
+    supervisor ! "get"
+
+    supervisor ! 100
+    supervisor ! "get"
+
     system.shutdown()
+    system.awaitTermination()
   }
 }
