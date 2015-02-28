@@ -1,12 +1,14 @@
 package demo
 
-import actors.MagicWorker
 import actors.MagicWorker.{MagicString, Undo}
 import actors.routers.randomrouting.RandomRouting
 import actors.routers.roundrobin.{RoundRobin, RoundRobinWorker}
 import actors.supervisor.{SelfStopSupervisor, Supervisor}
-import akka.actor.{ActorRef, ActorSystem, Props}
+import actors.{Echo, MagicWorker}
+import akka.actor.{ActorRef, ActorSystem, Inbox, Props}
 import akka.routing.{RoundRobinPool, SmallestMailboxPool}
+
+import scala.concurrent.duration._
 
 /**
  * Created by kasonchan on 2/26/15.
@@ -22,6 +24,11 @@ object Demo {
      * Create an actor system called Routers*
      */
     val system: ActorSystem = ActorSystem("Routers")
+
+    /**
+     * Create inbox for the system * 
+     */
+    val inbox = Inbox.create(system)
 
     /**
      * Creates a router with the props of RoundRobin class which contains two
@@ -105,6 +112,15 @@ object Demo {
 
     supervisor ! 100
     supervisor ! "get"
+
+    /**
+     * Create a Echo actor * 
+     */
+    val echo: ActorRef = system.actorOf(Props[Echo], "Echo")
+
+    inbox.send(echo, "How do you do?")
+    val echoReply = inbox.receive(1.seconds)
+    println(s"$echoReply")
 
     system.shutdown()
     system.awaitTermination()
