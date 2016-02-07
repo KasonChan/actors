@@ -3,9 +3,12 @@ package demo
 import actors.dynamics.Supervisor
 import akka.actor.{ActorSystem, Props}
 
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
 /**
- * Created by kasonchan on 7/30/15.
- */
+  * Created by kasonchan on 7/30/15.
+  */
 object Dynamics extends App {
 
   println("Dynamics")
@@ -17,7 +20,7 @@ object Dynamics extends App {
   for (i <- 1 to 10)
     supervisors ! i
 
-  system.shutdown()
-  system.awaitTermination()
+  system.terminate()
+  Await.result(system.terminate, Duration.Inf)
 
 }
